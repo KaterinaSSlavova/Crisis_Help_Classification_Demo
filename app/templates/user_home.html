@@ -1,22 +1,58 @@
 {% extends "base.html" %}
 {% block content %}
+    <div class="card">
+  <b>Academic demo:</b>
+  <span class="muted">This prototype is for research/education only and must not be used for real emergency response.</span>
+</div>
 <h1>User overview</h1>
-<p>Paste a crisis-related message to classify into your 5 engineered need labels.</p>
+<p class="muted">Tip: You can write a short message like “Need water and food for 5 people” or “We need an ambulance”.</p>
 
 <form method="post" action="{{ url_for('user.classify') }}" class="card">
   <label for="text">Message</label>
-  <textarea id="text" name="text" rows="8" placeholder="Type or paste message..."></textarea>
+  <textarea id="text" name="text" rows="8" placeholder="Type your message..."></textarea>
   <div class="actions">
-    <button type="submit">Classify</button>
+    <button type="submit">Submit</button>
   </div>
 </form>
 
 <div class="card">
-  <h2>Labels</h2>
-  <ul>
-    {% for l in labels %}
-      <li><code>{{ l }}</code></li>
-    {% endfor %}
-  </ul>
+  <h2>About this demo</h2>
+
+  <p>
+    This is a small research demo that classifies crisis-related messages into <b>five need categories</b>.
+    The goal is to explore how machine learning can support human decision-making by quickly organizing incoming messages.
+  </p>
+</div>
+
+<div class="card">
+  <h2>The 5 categories</h2>
+  <p class="muted">Examples of what each category includes:</p>
+
+  <div class="cat-grid">
+    <div class="cat">
+      <div class="cat-title">🧺 Basic supplies</div>
+      <div class="muted">{{ label_desc["need_basic_supplies"] }}</div>
+    </div>
+
+    <div class="cat">
+      <div class="cat-title">🩺 Medical help</div>
+      <div class="muted">{{ label_desc["need_medical_help"] }}</div>
+    </div>
+
+    <div class="cat">
+      <div class="cat-title">🚨 Safety & rescue</div>
+      <div class="muted">{{ label_desc["need_safety_rescue"] }}</div>
+    </div>
+
+    <div class="cat">
+      <div class="cat-title">🏠 Shelter</div>
+      <div class="muted">{{ label_desc["need_shelter"] }}</div>
+    </div>
+
+    <div class="cat">
+      <div class="cat-title">👥 People status</div>
+      <div class="muted">{{ label_desc["people_status"] }}</div>
+    </div>
+  </div>
 </div>
 {% endblock %}

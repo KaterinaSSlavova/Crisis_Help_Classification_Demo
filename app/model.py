@@ -3,6 +3,7 @@ import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from scipy.special import expit
 from .labels import LABELS
+from .text_normalization import preprocess_text
 
 _MODEL = None
 _TOKENIZER = None
@@ -23,7 +24,7 @@ def load_model(model_dir: str, thresholds_path: str):
         raise ValueError(f"Thresholds length {thr.shape[0]} != labels {len(LABELS)}")
     _THRESHOLDS = thr.astype(float)
 
-def predict(text: str, max_length: int = 256):
+def predict(text: str, max_length: int = 128):
     """
     Returns:
       probs: dict label->prob
@@ -33,9 +34,11 @@ def predict(text: str, max_length: int = 256):
     if _MODEL is None or _TOKENIZER is None or _THRESHOLDS is None:
         raise RuntimeError("Model not loaded. Call load_model() at startup.")
 
+    text_norm = preprocess_text(text, lemmatize=False)
+
     with torch.no_grad():
         enc = _TOKENIZER(
-            text,
+            text_norm,
             truncation=True,
             max_length=max_length,
             return_tensors="pt",

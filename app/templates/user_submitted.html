@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Message received</h1>
+
+<div class="card">
+  <p>Thank you — your message has been submitted.</p>
+  <p class="muted">A coordinator will review it shortly.</p>
+</div>
+
+<div class="actions">
+  <a class="linkbtn" href="{{ url_for('user.home') }}">Submit another message</a>
+</div>
+{% endblock %}

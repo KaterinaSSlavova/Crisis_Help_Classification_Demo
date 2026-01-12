@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="label-hero">{{ label }}</h1>
+<p class="muted">{{ label_desc }}</p>
+
+<div class="card">
+  <h2>Requests predicted as this label</h2>
+
+  {% if rows %}
+    <div class="req-list">
+  {% for r in rows %}
+    <a class="req-item" href="{{ url_for('manager.manager_request', req_id=r['id']) }}">
+      <div class="req-meta">
+        <div class="req-title">Request #{{ r["id"] }}</div>
+        <div class="req-time">{{ r["created_at_pretty"] }}</div>
+      </div>
+      <div class="req-snippet">{{ r["snippet"] }}{% if r["snippet"]|length >= 220 %}…{% endif %}</div>
+    </a>
+  {% endfor %}
+</div>
+  {% else %}
+    <p class="muted">No requests predicted for this label yet.</p>
+  {% endif %}
+</div>
+
+<div class="actions">
+  <a class="linkbtn" href="{{ url_for('manager.manager_home') }}">Back to manager overview</a>
+</div>
+{% endblock %}

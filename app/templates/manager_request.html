@@ -1,38 +1,42 @@
 {% extends "base.html" %}
+
 {% block content %}
-<h1>Request #{{ row["id"] }}</h1>
-<div class="muted">{{ row["created_at"] }}</div>
+<h1>All requests</h1>
+<p class="muted">Page {{ page }}</p>
 
 <div class="card">
-  <h2>Input</h2>
-  <pre class="pre">{{ row["user_text"] }}</pre>
-</div>
-
-<div class="card">
-  <h2>Stored predictions</h2>
-  <table>
-    <thead>
-      <tr><th>Label</th><th>Prob</th><th>Pred</th></tr>
-    </thead>
-    <tbody>
-      {% for lab, p in probs.items() %}
-        <tr>
-          <td><code>{{ lab }}</code></td>
-          <td>{{ "%.3f"|format(p) }}</td>
-          <td>
-            {% if preds[lab] == 1 %}
-              <span class="pill yes">YES</span>
-            {% else %}
-              <span class="pill no">NO</span>
-            {% endif %}
-          </td>
-        </tr>
+  {% if rows %}
+    <div class="req-list">
+      {% for r in rows %}
+        <a class="req-item" href="{{ url_for('manager.manager_request', req_id=r['id']) }}">
+          <div class="req-meta">
+            <div class="req-title">Request #{{ r["id"] }}</div>
+            <div class="req-time">{{ r["created_at_pretty"] }}</div>
+          </div>
+          <div class="req-snippet">{{ r["snippet"] }}{% if r["snippet"]|length >= 220 %}…{% endif %}</div>
+        </a>
       {% endfor %}
-    </tbody>
-  </table>
-</div>
+    </div>
 
-<div class="actions">
-  <a class="linkbtn" href="{{ url_for('manager.manager_home') }}">Back</a>
+    <div class="actions" style="margin-top:14px;">
+      {% if page > 1 %}
+        {% set prev_page = page - 1 %}
+        <a class="linkbtn" href="{{ url_for('manager.manager_requests_all', page=prev_page) }}">Previous</a>
+      {% endif %}
+
+      {% if has_next %}
+        {% set next_page = page + 1 %}
+        <a class="linkbtn" href="{{ url_for('manager.manager_requests_all', page=next_page) }}">Next</a>
+      {% endif %}
+
+      <a class="linkbtn" href="{{ url_for('manager.manager_home') }}">Back to overview</a>
+    </div>
+
+  {% else %}
+    <p class="muted">No requests yet.</p>
+    <div class="actions" style="margin-top:14px;">
+      <a class="linkbtn" href="{{ url_for('manager.manager_home') }}">Back to overview</a>
+    </div>
+  {% endif %}
 </div>
 {% endblock %}

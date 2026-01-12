@@ -17,7 +17,7 @@ def fmt_utc_iso(ts: str) -> str:
 
 @bp_manager.get("/")
 def manager_home():
-    rows = list_requests(limit=50)
+    rows = list_requests(limit=15)
     rows = [dict(r, created_at_pretty=fmt_utc_iso(r["created_at"])) for r in rows]
 
     today_counts = today_label_counts_all(LABELS)
@@ -57,8 +57,7 @@ def manager_request(req_id: int):
         text=row.get("user_text", ""),
         probs=probs,
         preds=preds,
-        xai=xai,
-        thr=thr,
+        xai=xai
     )
 
 @bp_manager.get("/label/<label>")

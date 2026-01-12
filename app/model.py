@@ -25,24 +25,13 @@ def load_model(model_dir: str, thresholds_path: str):
     _THRESHOLDS = thr.astype(float)
 
 def predict(text: str, max_length: int = 128):
-    """
-    Returns:
-      probs: dict label->prob
-      preds: dict label->0/1 using per-label thresholds
-      raw:   dict label->logit (optional debugging)
-    """
     if _MODEL is None or _TOKENIZER is None or _THRESHOLDS is None:
         raise RuntimeError("Model not loaded. Call load_model() at startup.")
 
     text_norm = preprocess_text(text, lemmatize=False)
 
     with torch.no_grad():
-        enc = _TOKENIZER(
-            text_norm,
-            truncation=True,
-            max_length=max_length,
-            return_tensors="pt",
-        )
+        enc = _TOKENIZER(text_norm,truncation=True,max_length=max_length,return_tensors="pt")
         out = _MODEL(**enc)
         logits = out.logits.squeeze(0).cpu().numpy()
 

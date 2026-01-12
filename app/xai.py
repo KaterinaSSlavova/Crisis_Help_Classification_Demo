@@ -1,72 +1,105 @@
 import torch
 import numpy as np
-from .model import get_tokenizer_and_model
-from .labels import LABELS
+from captum.attr import IntegratedGradients
 
-def token_importance(text: str, label: str, top_k: int = 12, max_length: int = 256):
-    """
-    Returns list of (token_str, score) for top_k tokens.
-    score is normalized absolute gradient*embedding magnitude proxy.
-    """
-    if label not in LABELS:
-        raise ValueError("Unknown label")
+def explain_positive_labels(text: str, positives: list[str], top_k=10, max_length=128):
+    from .model import get_tokenizer_and_model
+    from .text_normalization import preprocess_text
+    from .labels import LABELS
 
     tokenizer, model = get_tokenizer_and_model()
     model.eval()
 
+    text_norm = preprocess_text(text, lemmatize=False)
+
     enc = tokenizer(
-        text,
+        text_norm,
         truncation=True,
         max_length=max_length,
         return_tensors="pt",
+        return_offsets_mapping=True,
+        add_special_tokens=True,
     )
 
     input_ids = enc["input_ids"]
-    attention_mask = enc["attention_mask"]
+    attn = enc["attention_mask"]
+    offsets = enc["offset_mapping"][0].tolist()
+    tokens = tokenizer.convert_ids_to_tokens(input_ids[0])
 
-    # Get embeddings and enable grad
-    emb_layer = model.get_input_embeddings()
-    embeds = emb_layer(input_ids)
-    embeds.retain_grad()
-    embeds.requires_grad_(True)
+    embed = model.get_input_embeddings()
 
-    # Forward using inputs_embeds
-    out = model(inputs_embeds=embeds, attention_mask=attention_mask)
-    logits = out.logits  # [1, num_labels]
-    idx = LABELS.index(label)
-    target_logit = logits[0, idx]
+    def forward_logits(inputs_embeds, attention_mask):
+        out = model(inputs_embeds=inputs_embeds, attention_mask=attention_mask)
+        return out.logits  # [1, num_labels]
 
-    model.zero_grad(set_to_none=True)
-    if embeds.grad is not None:
-        embeds.grad.zero_()
+    with torch.no_grad():
+        inp_emb = embed(input_ids)
+        base_emb = torch.zeros_like(inp_emb)
 
-    target_logit.backward()
+    ig = IntegratedGradients(forward_logits)
 
-    # gradient × embedding magnitude proxy
-    grad = embeds.grad[0]             # [seq, dim]
-    emb = embeds.detach()[0]          # [seq, dim]
-    scores = torch.sum(torch.abs(grad * emb), dim=-1)  # [seq]
+    def aggregate_to_words(attr_scores):
+        words, scores = [], []
+        cur_word, cur_score = "", 0.0
 
-    scores = scores.cpu().numpy()
-    ids = input_ids[0].cpu().numpy()
+        for tok, (s, e), sc in zip(tokens, offsets, attr_scores):
+            if s == 0 and e == 0:
+                continue
 
-    tokens = tokenizer.convert_ids_to_tokens(ids)
-    # remove special tokens
-    filtered = []
-    for tok, sc, m in zip(tokens, scores, attention_mask[0].cpu().numpy()):
-        if m == 0:
+            piece = tok
+            if piece.startswith("##"):
+                cur_word += piece[2:]
+                cur_score += float(sc)
+                continue
+
+            if cur_word:
+                words.append(cur_word)
+                scores.append(cur_score)
+
+            cur_word = piece
+            cur_score = float(sc)
+
+        if cur_word:
+            words.append(cur_word)
+            scores.append(cur_score)
+
+        return words, scores
+
+    out = {}
+    pos_set = set(positives or [])
+
+    for j, lab in enumerate(LABELS):
+        if lab not in pos_set:
             continue
-        if tok in (tokenizer.cls_token, tokenizer.sep_token, tokenizer.pad_token):
-            continue
-        filtered.append((tok, float(sc)))
 
-    if not filtered:
-        return []
+        attributions = ig.attribute(
+            inputs=inp_emb,
+            baselines=base_emb,
+            additional_forward_args=(attn,),
+            target=j,     # ✅ label-specific
+            n_steps=24,
+        )
 
-    # normalize to 0..1
-    arr = np.array([s for _, s in filtered], dtype=float)
-    arr = arr / (arr.max() + 1e-12)
-    filtered = [(t, float(v)) for (t, _), v in zip(filtered, arr)]
+        tok_scores = attributions.sum(dim=-1).squeeze(0).detach().cpu().numpy()
 
-    filtered.sort(key=lambda x: x[1], reverse=True)
-    return filtered[:top_k]
+        # ✅ why YES: only positive contributions
+        tok_scores = np.clip(tok_scores, 0, None)
+
+        mx = float(tok_scores.max()) if tok_scores.size else 0.0
+        if mx > 0:
+            tok_scores = tok_scores / mx
+
+        words, scores = aggregate_to_words(tok_scores)
+
+        pairs = [(w, float(s)) for w, s in zip(words, scores) if s > 0]
+        pairs.sort(key=lambda x: x[1], reverse=True)
+        top = pairs[:top_k]
+
+        out[lab] = {
+            "words": [w for w, _ in top],
+            "scores": [s for _, s in top],
+            "all_words": words,
+            "all_scores": [float(s) for s in scores],
+        }
+
+    return out

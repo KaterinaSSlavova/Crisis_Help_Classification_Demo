@@ -1,13 +1,23 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Message received</h1>
 
-<div class="card">
-  <p>Thank you — your message has been submitted.</p>
-  <p class="muted">A coordinator will review it shortly.</p>
+<div class="confirm">
+  <div class="confirm-card card">
+    <div class="confirm-icon" aria-hidden="true">✓</div>
+
+    <h1 class="confirm-title">Message received</h1>
+    <p class="confirm-lead">Thank you — your message has been submitted.</p>
+    <p class="muted">A coordinator will review it shortly.</p>
+
+    <div class="confirm-actions">
+      <a class="btn-primary" href="{{ url_for('user.home') }}">Submit another message</a>
+      <a class="btn-ghost" href="{{ url_for('manager.manager_home') }}">Manager view</a>
+    </div>
+
+    <div class="confirm-hint">
+      If this is an emergency, contact local emergency services.
+    </div>
+  </div>
 </div>
 
-<div class="actions">
-  <a class="linkbtn" href="{{ url_for('user.home') }}">Submit another message</a>
-</div>
 {% endblock %}

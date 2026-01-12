@@ -8,19 +8,18 @@
   <pre class="pre">{{ text }}</pre>
 </div>
 
-<div class="grid">
+<div class="grid results-grid results-stretch">
   <div class="card">
     <h2>Predictions</h2>
     <table>
       <thead>
-        <tr><th>Label</th><th>Prob</th><th>Threshold</th><th>Pred</th></tr>
+        <tr><th>Label</th><th>Prob</th><th>Pred</th></tr>
       </thead>
       <tbody>
         {% for lab, p in probs.items() %}
           <tr>
             <td><code>{{ lab }}</code></td>
             <td>{{ "%.3f"|format(p) }}</td>
-            <td>{{ "%.3f"|format(thr[lab]) }}</td>
             <td>
               {% if preds[lab] == 1 %}
                 <span class="pill yes">YES</span>
@@ -34,18 +33,46 @@
     </table>
   </div>
 
-  <div class="card">
-    <h2>XAI token highlights</h2>
-    <p class="muted">Top tokens by gradient×embedding importance (demo-friendly explanation).</p>
+  <div class="card xai-card">
+    <h2>XAI — highlighted evidence</h2>
+    <p class="muted">
+      Captum Integrated Gradients: highlighted words contributed most to the predicted label.
+    </p>
 
-    {% for lab, toks in xai.items() %}
-      <h3><code>{{ lab }}</code></h3>
-      <div class="tokens">
-        {% for t, s in toks %}
-          <span class="token" style="opacity: {{ 0.25 + 0.75*s }};">{{ t }}</span>
-        {% endfor %}
-      </div>
-    {% endfor %}
+    {% set ns = namespace(shown=false) %}
+
+    <div class="xai-scroll">
+      {% for lab, p in probs.items() %}
+        {% if preds[lab] == 1 and xai.get(lab) %}
+          {% set ns.shown = true %}
+
+          <div class="xai-section">
+            <h3><code>{{ lab }}</code></h3>
+
+            <div class="heatline">
+              {% set words = xai[lab]["all_words"] %}
+              {% set scores = xai[lab]["all_scores"] %}
+              {% for i in range(words|length) %}
+                <span class="heatword" style="--a: {{ scores[i] }};">{{ words[i] }}</span>
+              {% endfor %}
+            </div>
+
+            <div class="topreasons">
+              {% for i in range(xai[lab]["words"]|length) %}
+                <div class="barrow">
+                  <span class="w">{{ xai[lab]["words"][i] }}</span>
+                  <span class="bar" style="--p: {{ xai[lab]["scores"][i] }};"></span>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+      {% endfor %}
+
+      {% if not ns.shown %}
+        <p class="muted">No positive labels to explain for this request.</p>
+      {% endif %}
+    </div>
   </div>
 </div>
 
@@ -53,4 +80,5 @@
   <a class="linkbtn" href="{{ url_for('user.home') }}">Classify another</a>
   <a class="linkbtn" href="{{ url_for('manager.manager_home') }}">Manager view</a>
 </div>
+
 {% endblock %}

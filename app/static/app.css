@@ -1,0 +1,42 @@
+:root { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+body { margin:0; background:#0b0c10; color:#eaeaea; }
+a { color:#9ad; text-decoration:none; }
+a:hover { text-decoration:underline; }
+
+.topbar { display:flex; justify-content:space-between; align-items:center; padding:14px 18px; background:#11131a; border-bottom:1px solid #222; }
+.brand { font-weight:700; letter-spacing:.3px; }
+.nav a { margin-left:14px; }
+
+.container { max-width:1100px; margin:0 auto; padding:18px; }
+.footer { padding:18px; text-align:center; color:#888; border-top:1px solid #222; margin-top:30px; }
+
+.card { background:#11131a; border:1px solid #222; border-radius:14px; padding:14px 16px; margin:14px 0; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
+.grid { display:grid; grid-template-columns: 1fr 1fr; gap:14px; }
+@media (max-width: 900px) { .grid { grid-template-columns:1fr; } }
+
+label { display:block; margin-bottom:8px; color:#cfcfcf; }
+textarea { width:100%; border-radius:12px; border:1px solid #2a2f3a; background:#0d0f14; color:#eaeaea; padding:10px; font-size:14px; }
+button { border:0; border-radius:12px; padding:10px 14px; background:#2d6cdf; color:white; font-weight:600; cursor:pointer; }
+button:hover { filter:brightness(1.06); }
+
+.actions { margin-top:12px; display:flex; gap:10px; }
+.linkbtn { display:inline-block; padding:10px 14px; border-radius:12px; background:#1a1e28; border:1px solid #2a2f3a; }
+
+table { width:100%; border-collapse:collapse; }
+th, td { text-align:left; padding:8px 6px; border-bottom:1px solid #222; }
+code { background:#0d0f14; padding:2px 6px; border-radius:8px; border:1px solid #222; }
+
+.pill { padding:3px 10px; border-radius:999px; font-weight:700; font-size:12px; }
+.pill.yes { background:#1b5e20; }
+.pill.no { background:#4a1c1c; }
+
+.pre { white-space:pre-wrap; background:#0d0f14; border:1px solid #222; padding:10px; border-radius:12px; }
+.muted { color:#9aa3ad; }
+
+.flash { margin:10px 0; }
+.flash-item { background:#3a2a0a; border:1px solid #6b4c10; padding:10px 12px; border-radius:12px; margin-bottom:8px; }
+
+.tokens { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 6px; }
+.token { background:#0d0f14; border:1px solid #222; padding:6px 10px; border-radius:999px; }
+.list { list-style:none; padding-left:0; margin:0; }
+.list li { padding:10px 0; border-bottom:1px solid #222; }

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>User overview</h1>
+<p>Paste a crisis-related message to classify into your 5 engineered need labels.</p>
+
+<form method="post" action="{{ url_for('user.classify') }}" class="card">
+  <label for="text">Message</label>
+  <textarea id="text" name="text" rows="8" placeholder="Type or paste message..."></textarea>
+  <div class="actions">
+    <button type="submit">Classify</button>
+  </div>
+</form>
+
+<div class="card">
+  <h2>Labels</h2>
+  <ul>
+    {% for l in labels %}
+      <li><code>{{ l }}</code></li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}

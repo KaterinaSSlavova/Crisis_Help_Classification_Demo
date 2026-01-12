@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Request #{{ row["id"] }}</h1>
+<div class="muted">{{ row["created_at"] }}</div>
+
+<div class="card">
+  <h2>Input</h2>
+  <pre class="pre">{{ row["user_text"] }}</pre>
+</div>
+
+<div class="card">
+  <h2>Stored predictions</h2>
+  <table>
+    <thead>
+      <tr><th>Label</th><th>Prob</th><th>Pred</th></tr>
+    </thead>
+    <tbody>
+      {% for lab, p in probs.items() %}
+        <tr>
+          <td><code>{{ lab }}</code></td>
+          <td>{{ "%.3f"|format(p) }}</td>
+          <td>
+            {% if preds[lab] == 1 %}
+              <span class="pill yes">YES</span>
+            {% else %}
+              <span class="pill no">NO</span>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="actions">
+  <a class="linkbtn" href="{{ url_for('manager.manager_home') }}">Back</a>
+</div>
+{% endblock %}

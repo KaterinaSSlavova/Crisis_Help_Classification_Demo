@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Result</h1>
+
+<div class="card">
+  <div class="muted">Request #{{ req_id }}</div>
+  <h2>Input</h2>
+  <pre class="pre">{{ text }}</pre>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h2>Predictions</h2>
+    <table>
+      <thead>
+        <tr><th>Label</th><th>Prob</th><th>Threshold</th><th>Pred</th></tr>
+      </thead>
+      <tbody>
+        {% for lab, p in probs.items() %}
+          <tr>
+            <td><code>{{ lab }}</code></td>
+            <td>{{ "%.3f"|format(p) }}</td>
+            <td>{{ "%.3f"|format(thr[lab]) }}</td>
+            <td>
+              {% if preds[lab] == 1 %}
+                <span class="pill yes">YES</span>
+              {% else %}
+                <span class="pill no">NO</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>XAI token highlights</h2>
+    <p class="muted">Top tokens by gradient×embedding importance (demo-friendly explanation).</p>
+
+    {% for lab, toks in xai.items() %}
+      <h3><code>{{ lab }}</code></h3>
+      <div class="tokens">
+        {% for t, s in toks %}
+          <span class="token" style="opacity: {{ 0.25 + 0.75*s }};">{{ t }}</span>
+        {% endfor %}
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="actions">
+  <a class="linkbtn" href="{{ url_for('user.home') }}">Classify another</a>
+  <a class="linkbtn" href="{{ url_for('manager.manager_home') }}">Manager view</a>
+</div>
+{% endblock %}

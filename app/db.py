@@ -26,7 +26,6 @@ def close_db(_e=None):
         db.close()
 
 def init_db(app):
-    # ensure instance dir exists
     import os
     os.makedirs(app.instance_path, exist_ok=True)
 
@@ -69,9 +68,6 @@ def get_request(req_id: int):
     return row
 
 def label_counts():
-    """
-    Counts predicted positives per label across all stored requests.
-    """
     import json
     db = get_db()
     rows = db.execute("SELECT preds_json FROM requests").fetchall()
@@ -123,10 +119,6 @@ def today_label_counts_all(labels: list[str]) -> dict:
 
 
 def requests_per_day_last_n(n_days: int = 7) -> dict:
-    """
-    Returns dict date->count for last n_days (UTC), including zeros.
-    Uses substr(created_at,1,10) == YYYY-MM-DD.
-    """
     end = datetime.utcnow().date()
     start = end - timedelta(days=n_days - 1)
 
